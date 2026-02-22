@@ -1,1 +1,1 @@
-# image-description-app
+# image-discription-app
