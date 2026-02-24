@@ -1,18 +1,774 @@
-<input type="file" id="fileInput">
-<button onclick="uploadImage()">Upload Image</button>
-<p id="result"></p>
+<!DOCTYPE html>
+<html lang="en">
 
-<script>
-    function uploadImage() {
-        const input = document.getElementById("fileInput");
-        const data = new FormData();
-        data.append("image", input.files[0]);
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Website</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap"
+        rel="stylesheet" />
+    <style>
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-        fetch("http://127.0.0.1:5000/upload", {
-            method: "POST",
-            body: data
-        }).then(res => res.json()).then(res => {
-            document.getElementById("result").innerText = "Description: " + res.description;
+        :root {
+            --ink: #0d0d0d;
+            --cream: #f5f0e8;
+            --accent: #c0392b;
+            --muted: #7a7060;
+            --border: #d8d0c0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--cream);
+            color: var(--ink);
+            overflow-x: hidden;
+        }
+
+        /* ─── NAV ─── */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.2rem 4rem;
+            background: rgba(245, 240, 232, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .logo span {
+            color: var(--accent);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--muted);
+            font-size: 0.85rem;
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--ink);
+        }
+
+        /* ─── HERO ─── */
+        .hero {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            padding-top: 80px;
+        }
+
+        .hero-left {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 6rem 4rem 6rem 6rem;
+        }
+
+        .hero-tag {
+            font-size: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+        }
+
+        .hero-tag::before {
+            content: '';
+            display: block;
+            width: 2rem;
+            height: 1px;
+            background: var(--accent);
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(3rem, 5vw, 5.5rem);
+            line-height: 1.05;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            margin-bottom: 1.5rem;
+        }
+
+        h1 em {
+            font-style: italic;
+            color: var(--muted);
+        }
+
+        .hero-desc {
+            font-size: 1.05rem;
+            color: var(--muted);
+            max-width: 420px;
+            line-height: 1.7;
+            margin-bottom: 3rem;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.85rem 2rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            text-decoration: none;
+            border-radius: 2px;
+            cursor: pointer;
+            transition: all 0.25s;
+        }
+
+        .btn-primary {
+            background: var(--ink);
+            color: var(--cream);
+            border: 2px solid var(--ink);
+        }
+
+        .btn-primary:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--ink);
+            border: 2px solid var(--ink);
+        }
+
+        .btn-outline:hover {
+            background: var(--ink);
+            color: var(--cream);
+        }
+
+        .hero-right {
+            position: relative;
+            overflow: hidden;
+            background: var(--ink);
+        }
+
+        .hero-right::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(45deg,
+                    transparent, transparent 40px,
+                    rgba(255, 255, 255, 0.03) 40px, rgba(255, 255, 255, 0.03) 41px);
+        }
+
+        .hero-img-wrap {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hero-placeholder {
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.5);
+            font-family: 'Playfair Display', serif;
+            font-size: 1.1rem;
+            font-style: italic;
+            text-align: center;
+            gap: 0.5rem;
+        }
+
+        .hero-placeholder svg {
+            opacity: 0.3;
+        }
+
+        .hero-number {
+            position: absolute;
+            bottom: 3rem;
+            right: 3rem;
+            font-size: 8rem;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.04);
+            font-family: 'Playfair Display', serif;
+            line-height: 1;
+        }
+
+        /* ─── ABOUT ─── */
+        section {
+            padding: 7rem 6rem;
+        }
+
+        .section-label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 1rem;
+        }
+
+        h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2rem, 3.5vw, 3.2rem);
+            letter-spacing: -0.02em;
+            margin-bottom: 1.5rem;
+        }
+
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6rem;
+            align-items: center;
+        }
+
+        .about-text p {
+            color: var(--muted);
+            line-height: 1.8;
+            margin-bottom: 1.2rem;
+            font-size: 1rem;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .stat {
+            border-top: 2px solid var(--border);
+            padding-top: 1.2rem;
+        }
+
+        .stat-num {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 0.4rem;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--muted);
+            letter-spacing: 0.05em;
+        }
+
+        .skills-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+        }
+
+        .skill-tag {
+            padding: 0.6rem 1.2rem;
+            border: 1px solid var(--border);
+            font-size: 0.82rem;
+            color: var(--muted);
+            background: white;
+            border-radius: 2px;
+            transition: all 0.2s;
+        }
+
+        .skill-tag:hover {
+            border-color: var(--ink);
+            color: var(--ink);
+            background: var(--cream);
+        }
+
+        /* ─── PROJECTS ─── */
+        #projects {
+            background: var(--ink);
+            color: var(--cream);
+        }
+
+        #projects .section-label {
+            color: #c0392b;
+        }
+
+        #projects h2 {
+            color: var(--cream);
+        }
+
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2px;
+            margin-top: 3rem;
+        }
+
+        .card {
+            background: #161616;
+            padding: 2.5rem;
+            border: 1px solid #1e1e1e;
+            transition: background 0.25s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            background: #1a1a1a;
+        }
+
+        .card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--accent);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover::after {
+            transform: scaleX(1);
+        }
+
+        .card-num {
+            font-size: 0.7rem;
+            color: #444;
+            letter-spacing: 0.15em;
+            margin-bottom: 1.5rem;
+        }
+
+        .card h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.3rem;
+            margin-bottom: 0.8rem;
+            color: var(--cream);
+        }
+
+        .card p {
+            font-size: 0.88rem;
+            color: #777;
+            line-height: 1.7;
+        }
+
+        .card-tag {
+            display: inline-block;
+            margin-top: 1.5rem;
+            padding: 0.3rem 0.8rem;
+            font-size: 0.7rem;
+            background: #222;
+            color: #888;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            border-radius: 2px;
+        }
+
+        /* ─── CONTACT ─── */
+        #contact {
+            background: var(--cream);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6rem;
+            align-items: center;
+        }
+
+        #contact .left {
+            max-width: 460px;
+        }
+
+        #contact p {
+            color: var(--muted);
+            line-height: 1.8;
+            margin-bottom: 2rem;
+        }
+
+        .contact-links {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .contact-link {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            text-decoration: none;
+            color: var(--ink);
+            font-weight: 500;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border);
+            transition: color 0.2s;
+            font-size: 0.95rem;
+        }
+
+        .contact-link:hover {
+            color: var(--accent);
+        }
+
+        .contact-link span {
+            font-size: 1.2rem;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            padding: 0.9rem 1rem;
+            background: white;
+            border: 1px solid var(--border);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            color: var(--ink);
+            outline: none;
+            border-radius: 2px;
+            transition: border-color 0.2s;
+        }
+
+        input:focus,
+        textarea:focus {
+            border-color: var(--ink);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: #bbb;
+        }
+
+        /* ─── FOOTER ─── */
+        footer {
+            background: var(--ink);
+            color: #555;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem 6rem;
+            font-size: 0.82rem;
+            letter-spacing: 0.05em;
+        }
+
+        footer a {
+            color: #555;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            color: var(--cream);
+        }
+
+        /* ─── ANIMATIONS ─── */
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero-left>* {
+            opacity: 0;
+            animation: fadeUp 0.7s ease forwards;
+        }
+
+        .hero-tag {
+            animation-delay: 0.1s;
+        }
+
+        h1 {
+            animation-delay: 0.25s;
+        }
+
+        .hero-desc {
+            animation-delay: 0.4s;
+        }
+
+        .btn-group {
+            animation-delay: 0.55s;
+        }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 900px) {
+            nav {
+                padding: 1rem 2rem;
+            }
+
+            .nav-links {
+                gap: 1.5rem;
+            }
+
+            .hero {
+                grid-template-columns: 1fr;
+                min-height: auto;
+            }
+
+            .hero-left {
+                padding: 8rem 2rem 4rem;
+            }
+
+            .hero-right {
+                min-height: 320px;
+            }
+
+            section {
+                padding: 5rem 2rem;
+            }
+
+            .about-grid,
+            #contact {
+                grid-template-columns: 1fr;
+                gap: 3rem;
+            }
+
+            .projects-grid {
+                grid-template-columns: 1fr;
+            }
+
+            footer {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 2rem;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAV -->
+    <nav>
+        <div class="logo">My<span>.</span>Website</div>
+        <ul class="nav-links">
+            <li><a href="#about">About</a></li>
+            <li><a href="#projects">Projects</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero" id="home">
+        <div class="hero-left">
+            <div class="hero-tag">Welcome to my space</div>
+            <h1>Creative &<br><em>Curious</em><br>Mind.</h1>
+            <p class="hero-desc">
+                I build thoughtful experiences and bring ideas to life through clean design and purposeful work.
+            </p>
+            <div class="btn-group">
+                <a class="btn btn-primary" href="#projects">View My Work</a>
+                <a class="btn btn-outline" href="#contact">Get in Touch</a>
+            </div>
+        </div>
+        <div class="hero-right">
+            <div class="hero-img-wrap">
+                <div class="hero-placeholder">
+                    <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="1">
+                        <circle cx="12" cy="8" r="4" />
+                        <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+                    </svg>
+                    Your Photo Here
+                </div>
+            </div>
+            <div class="hero-number">01</div>
+        </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section id="about">
+        <div class="about-grid">
+            <div class="about-text">
+                <div class="section-label">About Me</div>
+                <h2>Passion meets<br>Purpose</h2>
+                <p>
+                    I'm a dedicated individual who loves creating meaningful work. Whether it's designing, building, or
+                    problem-solving, I bring care and intention to everything I do.
+                </p>
+                <p>
+                    With a focus on quality and continuous growth, I strive to make an impact through my craft and
+                    collaborate with others who share the same vision.
+                </p>
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-num">3+</div>
+                        <div class="stat-label">Years Experience</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-num">20+</div>
+                        <div class="stat-label">Projects Done</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-num">15+</div>
+                        <div class="stat-label">Happy Clients</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-num">100%</div>
+                        <div class="stat-label">Dedication</div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div class="section-label" style="margin-bottom:1.5rem;">Skills & Tools</div>
+                <div class="skills-grid">
+                    <span class="skill-tag">HTML & CSS</span>
+                    <span class="skill-tag">JavaScript</span>
+                    <span class="skill-tag">UI Design</span>
+                    <span class="skill-tag">Problem Solving</span>
+                    <span class="skill-tag">Communication</span>
+                    <span class="skill-tag">Git & GitHub</span>
+                    <span class="skill-tag">VS Code</span>
+                    <span class="skill-tag">Responsive Design</span>
+                    <span class="skill-tag">Team Collaboration</span>
+                    <span class="skill-tag">Project Management</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PROJECTS -->
+    <section id="projects">
+        <div class="section-label">My Work</div>
+        <h2>Selected Projects</h2>
+        <div class="projects-grid">
+            <div class="card">
+                <div class="card-num">01 ─────</div>
+                <h3>Project One</h3>
+                <p>A brief description of this project, what it does, and the impact it created. Highlight the key
+                    challenge you solved.</p>
+                <span class="card-tag">Web Design</span>
+            </div>
+            <div class="card">
+                <div class="card-num">02 ─────</div>
+                <h3>Project Two</h3>
+                <p>Describe what makes this project stand out. Focus on the result and what you learned from building
+                    it.</p>
+                <span class="card-tag">Development</span>
+            </div>
+            <div class="card">
+                <div class="card-num">03 ─────</div>
+                <h3>Project Three</h3>
+                <p>Share the story of this project — the problem, your approach, and why you're proud of the outcome.
+                </p>
+                <span class="card-tag">Design</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section id="contact">
+        <div class="left">
+            <div class="section-label">Contact</div>
+            <h2>Let's work<br>together.</h2>
+            <p>Have a project in mind or just want to say hi? I'd love to hear from you. Reach out through the form or
+                any of the links below.</p>
+            <div class="contact-links">
+                <a class="contact-link" href="mailto:you@email.com"><span>✉</span> you@email.com</a>
+                <a class="contact-link" href="#"><span>💼</span> linkedin.com/in/yourprofile</a>
+                <a class="contact-link" href="#"><span>🐙</span> github.com/yourusername</a>
+            </div>
+        </div>
+        <form onsubmit="handleForm(event)">
+            <input type="text" placeholder="Your Name" required />
+            <input type="email" placeholder="Your Email" required />
+            <input type="text" placeholder="Subject" />
+            <textarea placeholder="Your message..."></textarea>
+            <button type="submit" class="btn btn-primary"
+                style="border:none;cursor:pointer;text-transform:uppercase;font-family:'DM Sans',sans-serif;letter-spacing:0.05em;">Send
+                Message</button>
+        </form>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <span>© 2025 My Website. All rights reserved.</span>
+        <span>Made with ♥ using HTML, CSS & JavaScript</span>
+    </footer>
+
+    <script>
+        // Smooth active nav highlighting
+        const sections = document.querySelectorAll('section[id]');
+        const navLinks = document.querySelectorAll('.nav-links a');
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(s => {
+                if (window.scrollY >= s.offsetTop - 100) current = s.id;
+            });
+            navLinks.forEach(a => {
+                a.style.color = a.getAttribute('href') === '#' + current ? 'var(--ink)' : '';
+            });
         });
-    }
-</script>
+
+        // Form handler
+        function handleForm(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            btn.textContent = 'Message Sent ✓';
+            btn.style.background = '#27ae60';
+            btn.style.borderColor = '#27ae60';
+            setTimeout(() => {
+                btn.textContent = 'Send Message';
+                btn.style.background = '';
+                btn.style.borderColor = '';
+                e.target.reset();
+            }, 3000);
+        }
+
+        // Intersection observer for section animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(e => {
+                if (e.isIntersecting) e.target.style.opacity = '1';
+            });
+        }, { threshold: 0.1 });
+    </script>
+</body>
+
+</html>
